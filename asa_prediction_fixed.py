@@ -33,7 +33,7 @@ def check_login():
             st.markdown("""
                 <div style='text-align: center;'>
                     <h1 style='color: #1E3A8A; margin-bottom: 0;'>ASA-PREDICTION MODEL</h1>
-                    <h3 style='margin-top: 10px; color: #4B5563;'>By: Aya Mohamed Sanad</h3>
+                    <h3 style='margin-top: 10px; color: #4B5563;'>By: Aya Mohamed Sanad Aboud</h3>
                     <p style='font-size: 1.2em; color: #6B7280; font-style: italic;'>Master researcher</p>
                 </div>
             """, unsafe_allow_html=True)
@@ -64,8 +64,8 @@ def show_academic_header():
     st.markdown("""
         <style>
         .main-title { font-family: 'Times New Roman', Times, serif; color: #1E3A8A; text-align: center; font-size: 40px; font-weight: bold; margin-bottom: 0px; }
-        .sub-title { font-family: 'Times New Roman', Times, serif; color: #374151; text-align: center; font-size: 24px; margin-top: 5px; font-weight: bold; }
-        .info-text { font-family: 'Times New Roman', Times, serif; text-align: center; font-size: 20px; line-height: 1.2; margin-top: 20px; }
+        .sub-title { font-family: 'Times New Roman', Times, serif; color: #374151; text-align: center; font-size: 28px; margin-top: 5px; font-weight: bold; }
+        .info-text { font-family: 'Times New Roman', Times, serif; text-align: center; font-size: 24px; line-height: 1.2; margin-top: 20px; }
         .supervision-text { font-family: 'Times New Roman', Times, serif; text-align: center; font-size: 20px; font-weight: bold; margin-top: 15px; color: #1E40AF; }
         </style>
     """, unsafe_allow_html=True)
@@ -73,7 +73,7 @@ def show_academic_header():
     col_left, col_mid, col_right = st.columns([1, 3, 1])
     
     with col_left:
-        st.image("https://via.placeholder.com/150", width=130)
+        st.image("https://raw.githubusercontent.com/ayasanad14799-coder/ASA-PREDICTION-MODEL/main/OIP.jfif", width=130)
     
     with col_mid:
         st.markdown('<p class="main-title">ASA-PREDICTION MODEL</p>', unsafe_allow_html=True)
@@ -91,7 +91,7 @@ def show_academic_header():
         """, unsafe_allow_html=True)
 
     with col_right:
-        st.image("https://via.placeholder.com/150", width=130)
+        st.image("https://raw.githubusercontent.com/ayasanad14799-coder/ASA-PREDICTION-MODEL/main/LOGO.png", width=130)
     
     st.divider()
 
@@ -143,69 +143,77 @@ def run_prediction_engine(inputs):
         st.error("Cannot run prediction - model files not loaded!")
         return None
     
-    check_ood(inputs)
+    # حساب نسبة الماء للأسمنت (W_C) لأنها مدخل أساسي في موديلك
+    wc_val = inputs['Water'] / inputs['Cement'] if inputs['Cement'] > 0 else 0
     
-    # تجهيز مصفوفة الـ 36 عمود
-    vector = np.zeros(36)
-    vector[1] = inputs['Cement']
-    vector[2] = inputs['Water']
-    vector[3] = inputs['NCA']
-    vector[4] = inputs['NFA']
-    vector[5] = inputs['RCA_P']
-    vector[6] = inputs['MRCA_P']
-    vector[7] = inputs['RFA_P']
-    vector[8] = inputs['Silica_Fume']
-    vector[9] = inputs['Fly_Ash']
-    vector[11] = inputs['Nylon_Fiber']
-    vector[13] = inputs['SP']
-    vector[14] = inputs['Water'] / inputs['Cement'] if inputs['Cement'] > 0 else 0
+    # 1. تجميع الـ 11 مدخل بالترتيب الدقيق الذي يطلبه الـ Scaler
+    # الترتيب: Cement, Water, NCA, NFA, RCA_P, MRCA_P, Silica_Fume, Fly_Ash, Nylon_Fiber, W_C, SP
+    feature_list = [
+        inputs['Cement'],        # 1
+        inputs['Water'],         # 2
+        inputs['NCA'],           # 3
+        inputs['NFA'],           # 4
+        inputs['RCA_P'],         # 5
+        inputs['MRCA_P'],        # 6
+        inputs['Silica_Fume'],   # 7
+        inputs['Fly_Ash'],       # 8
+        inputs['Nylon_Fiber'],   # 9
+        wc_val,                  # 10 (W_C)
+        inputs['SP']             # 11
+    ]
     
-    # التنبؤ
-    input_scaled = scaler.transform(vector.reshape(1, -1))
+    # 2. تحويل البيانات لمصفوفة (11 عنصر فقط)
+    vector = np.array(feature_list).reshape(1, -1)
+    
+    # 3. المعالجة (Scaling) - لن يحدث خطأ هنا الآن لأن العدد 11 مطابق
+    input_scaled = scaler.transform(vector)
+    
+    # 4. التنبؤ (يخرج 17 قيمة: من 0 إلى 16)
     raw_preds = model.predict(input_scaled)[0]
     
-    # عرض النتائج
+    # 5. عرض النتائج باستخدام الفهارس الصحيحة (Indices) من ملف الإكسل الخاص بكِ
     st.markdown("### 📊 Prediction Analysis Results")
     st.success("✅ Prediction completed successfully!")
     
-    res_tabs = st.tabs([
-        "🏗️ Technical Aspect", 
-        "🌱 Environmental Aspect", 
-        "💰 Economic Aspect", 
-        "🕸️ Eco-Efficiency Radar"
-    ])
+    res_tabs = st.tabs(["🏗️ Technical", "🌱 Environmental", "💰 Economic", "🕸️ Radar Chart"])
     
     with res_tabs[0]:
         t_col1, t_col2 = st.columns(2)
         with t_col1:
-            st.metric("Slump (mm)", f"{raw_preds[16]:.1f}")
-            st.metric("CS 28-day (MPa)", f"{raw_preds[19]:.2f}")
-            if raw_preds[19] < 25:
-                st.markdown("<p style='color:red; font-weight:bold;'>⚠️ Below Structural Limit (25 MPa)</p>", unsafe_allow_html=True)
-            else:
-                st.markdown("<p style='color:green; font-weight:bold;'>✅ Safe for Structural Use</p>", unsafe_allow_html=True)
+            st.metric("Slump (mm)", f"{raw_preds[0]:.1f}")        # Slump
+            st.metric("CS 28-day (MPa)", f"{raw_preds[3]:.2f}")   # CS_28
         with t_col2:
-            st.metric("Flexural Strength (MPa)", f"{raw_preds[22]:.2f}")
-            st.metric("UPV (m/s)", f"{raw_preds[25]:.0f}")
+            st.metric("Flexural Strength (MPa)", f"{raw_preds[6]:.2f}") # FS
+            st.metric("UPV (m/s)", f"{raw_preds[9]:.0f}")         # UPV
 
     with res_tabs[1]:
         e_col1, e_col2 = st.columns(2)
         with e_col1:
-            st.metric("CO2 Footprint (kg)", f"{raw_preds[29]:.1f}")
-            st.metric("Sustainability Index", f"{raw_preds[34]:.4f}")
+            st.metric("CO2 Footprint (kg)", f"{raw_preds[13]:.1f}") # CO2
+            # حساب مؤشر الاستدامة: المقاومة مقسومة على الكربون
+            sust_score = raw_preds[3] / raw_preds[13] if raw_preds[13] > 0 else 0
+            st.metric("Sustainability Index", f"{sust_score:.4f}")
         with e_col2:
-            st.metric("Water Absorption (%)", f"{raw_preds[24]:.2f}")
-            st.metric("Energy (MJ)", f"{raw_preds[30]:.0f}")
+            st.metric("Energy (MJ)", f"{raw_preds[14]:.0f}")        # Energy
+            st.metric("Water Absorption (%)", f"{raw_preds[8]:.2f}") # Water_Abs
 
     with res_tabs[2]:
-        st.metric("Total Cost (USD/m³)", f"{raw_preds[31]:.2f}")
-        st.progress(min(raw_preds[31]/150, 1.0), text="Cost vs Max Budget Index")
+        st.metric("Total Cost (USD/m³)", f"{raw_preds[15]:.2f}")     # Cost
 
     with res_tabs[3]:
-        show_radar_chart(raw_preds)
+        # عرض مخطط راداري يوضح كفاءة الخلطة
+        categories = ['Strength', 'Eco-Friendly', 'Economic']
+        # قيم معيارية للعرض (0-1)
+        r_values = [
+            min(raw_preds[3]/70, 1.0), 
+            1 - min(raw_preds[13]/500, 1.0), 
+            1 - min(raw_preds[15]/150, 1.0)
+        ]
+        fig = go.Figure(data=go.Scatterpolar(r=r_values, theta=categories, fill='toself'))
+        fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 1])))
+        st.plotly_chart(fig)
     
     return raw_preds
-
 # =============================================================================
 # 7. دالة الـ Radar Chart
 # =============================================================================
