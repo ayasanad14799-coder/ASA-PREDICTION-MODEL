@@ -74,10 +74,7 @@ def show_academic_header():
     
     with col_left:
         st.image("https://raw.githubusercontent.com/ayasanad14799-coder/ASA-PREDICTION-MODEL/main/OIP.jfif", width=130)
-    
     with col_mid:
-            # تأكدي أن الأسطر التالية تبدأ بمسافة بادئة (Indentation) عن سطر with
-            
             # السطر الأول: اسم البرنامج (أزرق غامق + خط كبير جداً)
             st.markdown("""
                 <div style='text-align: center;'>
@@ -95,6 +92,7 @@ def show_academic_header():
                     </h2>
                 </div>
                 """, unsafe_allow_html=True)
+        
         st.markdown("""
             <div class="info-text">
                 <b>Prepared by:</b><br>
