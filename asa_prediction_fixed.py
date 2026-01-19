@@ -75,35 +75,37 @@ def show_academic_header():
     with col_left:
         st.image("https://raw.githubusercontent.com/ayasanad14799-coder/ASA-PREDICTION-MODEL/main/OIP.jfif", width=130)
     with col_mid:
-            # السطر الأول: اسم البرنامج (أزرق غامق + خط كبير جداً)
+            # 1. اسم البرنامج (أزرق غامق - خط كبير جداً)
             st.markdown("""
                 <div style='text-align: center;'>
-                    <h1 style='color: #1E3A8A; font-size: 50px; font-weight: bold; margin-bottom: 0px; padding-bottom: 0px;'>
+                    <h1 style='color: #1E3A8A; font-size: 50px; font-weight: bold; margin-bottom: 0px;'>
                         ASA-PREDICTION MODEL
                     </h1>
                 </div>
                 """, unsafe_allow_html=True)
 
-            # السطر الثاني: اسم البحث (أحمر + خط كبير)
+            # 2. اسم البحث (أحمر - خط كبير وواضح)
             st.markdown("""
                 <div style='text-align: center;'>
-                    <h2 style='color: #D32F2F; font-size: 30px; font-weight: 500; margin-top: 5px;'>
+                    <h2 style='color: #D32F2F; font-size: 28px; font-weight: 500; margin-top: 5px; line-height: 1.4;'>
                         Multi-criteria analysis of eco-efficient concrete from Technical, Environmental and Economic aspects
                     </h2>
                 </div>
                 """, unsafe_allow_html=True)
-        
-        st.markdown("""
-            <div class="info-text">
-                <b>Prepared by:</b><br>
-                Master's Researcher: Aya Mohammed Sanad Aboud
-            </div>
-            <div class="supervision-text">
-                Under the Supervision of:<br>
-                Prof. Ahmed Tahwia & Assoc. prof. Asser El-Sheikh
-            </div>
-        """, unsafe_allow_html=True)
 
+            # 3. بيانات الباحث والمشرفين (ممركزة ومنسقة)
+            st.markdown("""
+                <div style='text-align: center; margin-top: 25px; padding-top: 15px; border-top: 1px solid #E5E7EB;'>
+                    <div style='font-size: 20px; color: #1F2937; margin-bottom: 15px;'>
+                        <b>Prepared by:</b><br>
+                        Master's Researcher: <b>Aya Mohammed Sanad Aboud</b>
+                    </div>
+                    <div style='font-size: 18px; color: #4B5563; font-style: italic;'>
+                        Under the Supervision of:<br>
+                        Prof. Ahmed Tahwia & Assoc. prof. Asser El-Sheikh
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
     with col_right:
         st.image("https://raw.githubusercontent.com/ayasanad14799-coder/ASA-PREDICTION-MODEL/main/LOGO.png", width=130)
     
