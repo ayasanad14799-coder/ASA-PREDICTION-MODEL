@@ -76,24 +76,25 @@ def show_academic_header():
         st.image("https://raw.githubusercontent.com/ayasanad14799-coder/ASA-PREDICTION-MODEL/main/OIP.jfif", width=130)
     
     with col_mid:
-    # السطر الأول: اسم البرنامج (أزرق غامق + خط كبير جداً)
-    st.markdown("""
-        <div style='text-align: center;'>
-            <h1 style='color: #1E3A8A; font-size: 50px; font-weight: bold; margin-bottom: 0px; padding-bottom: 0px;'>
-                ASA-PREDICTION MODEL
-            </h1>
-        </div>
-        """, unsafe_allow_html=True)
+            # تأكدي أن الأسطر التالية تبدأ بمسافة بادئة (Indentation) عن سطر with
+            
+            # السطر الأول: اسم البرنامج (أزرق غامق + خط كبير جداً)
+            st.markdown("""
+                <div style='text-align: center;'>
+                    <h1 style='color: #1E3A8A; font-size: 50px; font-weight: bold; margin-bottom: 0px; padding-bottom: 0px;'>
+                        ASA-PREDICTION MODEL
+                    </h1>
+                </div>
+                """, unsafe_allow_html=True)
 
-    # السطر الثاني: اسم البحث (أحمر + خط كبير)
-    st.markdown("""
-        <div style='text-align: center;'>
-            <h2 style='color: #D32F2F; font-size: 30px; font-weight: 500; margin-top: 5px;'>
-                Multi-criteria analysis of eco-efficient concrete from Technical, Environmental and Economic aspects
-            </h2>
-        </div>
-        """, unsafe_allow_html=True)
-    
+            # السطر الثاني: اسم البحث (أحمر + خط كبير)
+            st.markdown("""
+                <div style='text-align: center;'>
+                    <h2 style='color: #D32F2F; font-size: 30px; font-weight: 500; margin-top: 5px;'>
+                        Multi-criteria analysis of eco-efficient concrete from Technical, Environmental and Economic aspects
+                    </h2>
+                </div>
+                """, unsafe_allow_html=True)
         st.markdown("""
             <div class="info-text">
                 <b>Prepared by:</b><br>
