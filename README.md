@@ -10,7 +10,7 @@
 ## 📝 Project Overview
 The **ASA-PREDICTION MODEL** is an advanced analytical platform designed to bridge the gap between AI and sustainable construction. It utilizes a **Multi-output Random Forest** architecture to predict the technical, environmental, and economic performance of concrete mixes containing recycled and eco-friendly materials.
 ## 🔗 Live Demo
-Check out the live application here: [ASA-PREDICTION MODEL App](رابط_تطبيقك_هنا)
+Check out the live application here: [ASA-PREDICTION MODEL App]([رابط_تطبيقك_هنا](https://asa-prediction-model-gv2tourvlszm5hsk8xn6z5.streamlit.app/))
 ## 🚀 Key Features
 - **Predictor:** Real-time estimation of 17 performance indicators (Strength, Durability, CO2, Cost).
 - **Optimizer:** Identifies the top 5 "Green Mixes" based on laboratory-validated data.
