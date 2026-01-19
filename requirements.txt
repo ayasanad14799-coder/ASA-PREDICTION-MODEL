@@ -3,6 +3,6 @@ pandas
 numpy
 plotly
 joblib
-streamlit-gsheets
+st-gsheets-connection
 xlsxwriter
 scikit-learn==1.4.0
