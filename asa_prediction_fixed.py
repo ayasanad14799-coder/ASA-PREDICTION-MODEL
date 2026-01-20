@@ -309,7 +309,6 @@ def show_input_section():
         st.markdown("##### ♻️ Recycled Content (%)")
         rca_p = st.number_input("RCA (%)", min_value=0.0, max_value=100.0, value=0.0, step=0.1)
         mrca_p = st.number_input("MRCA (%)", min_value=0.0, max_value=70.0, value=0.0, step=0.1)
-        # ملاحظة: تم استبعاد RFA بناءً على تحديث الموديل الأخير
 
     with col3:
         st.markdown("##### ⚗️ Additives & Fibers")
@@ -331,20 +330,20 @@ def show_input_section():
         }
 
         with st.spinner("Calculating & Logging Results..."):
-            # 2. تشغيل محرك التوقعات (مرة واحدة فقط للسرعة)
+            # 2. تشغيل محرك التوقعات (بتقوم بالعرض والحساب في نفس الوقت)
             results = run_prediction_engine(inputs)
             
             if results is not None:
-                # 3. السطر السحري: تسجيل النتائج في جوجل شيت فوراً
+                # 3. تسجيل النتائج في جوجل شيت فوراً
                 log_prediction_to_sheets(inputs, results)
                 
                 # 4. حفظ الحالة الحالية في التطبيق
                 st.session_state['last_predictions'] = results
                 st.session_state['last_inputs'] = inputs
                 
-                # 5. عرض لوحة النتائج النهائية للمستخدم
-                show_results_dashboard(results)
+                # تم حذف سطر show_results_dashboard المسبب للخطأ
             else:
+                # رسالة الخطأ تظهر فقط في حالة فشل الموديل (خارج بلوك النجاح)
                 st.error("⚠️ Prediction failed. Please check your input values.")
 
 # =============================================================================
@@ -492,10 +491,11 @@ def show_model_metrics():
 # 11. نظام الفيدباك مع الربط بـ Google Sheets
 # =============================================================================
 def log_prediction_to_sheets(inputs, results):
-    """تسجيل البيانات في ورقة Predictions_Log"""
+    """تسجيل البيانات مع ضمان تطابق الأعمدة"""
     try:
         conn = st.connection("gsheets", type=GSheetsConnection)
         
+        # تجهيز البيانات بترتيب ثابت ودقيق
         new_row = pd.DataFrame([{
             "Timestamp": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
             "Cement": inputs['Cement'],
@@ -514,6 +514,7 @@ def log_prediction_to_sheets(inputs, results):
         }])
 
         try:
+            # قراءة البيانات. إذا كان الشيت فارغاً، سيبدأ بجدول جديد تماماً بالعناوين الصحيحة
             existing_data = conn.read(worksheet="Predictions_Log", ttl=0)
             if existing_data is not None and not existing_data.empty:
                 updated_df = pd.concat([existing_data, new_row], ignore_index=True)
@@ -526,6 +527,50 @@ def log_prediction_to_sheets(inputs, results):
         st.toast("✅ تم الحفظ في جوجل شيت", icon="💾")
     except Exception as e:
         st.sidebar.error(f"Logging Error: {e}")
+
+def show_input_section():
+    st.markdown("### 🏗️ Design Mix Inputs")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("##### 🧱 Basic Materials (kg/m³)")
+        cement = st.number_input("Cement Amount", min_value=0.0, value=350.0, key="cem_unique")
+        water = st.number_input("Water Amount", min_value=0.0, value=175.0, key="wat_unique")
+        nca = st.number_input("NCA", min_value=0.0, value=1000.0, key="nca_unique")
+        nfa = st.number_input("NFA", min_value=0.0, value=700.0, key="nfa_unique")
+
+    with col2:
+        st.markdown("##### ♻️ Recycled Content (%)")
+        rca_p = st.number_input("RCA (%)", min_value=0.0, max_value=100.0, value=0.0)
+        mrca_p = st.number_input("MRCA (%)", min_value=0.0, max_value=70.0, value=0.0)
+
+    with col3:
+        st.markdown("##### ⚗️ Additives & Fibers")
+        silica = st.number_input("Silica Fume", min_value=0.0, value=0.0)
+        fly_ash = st.number_input("Fly Ash", min_value=0.0, value=0.0)
+        fiber = st.number_input("Nylon Fiber", min_value=0.0, value=0.0)
+        sp = st.number_input("Superplasticizer", min_value=0.0, value=2.0)
+
+    if st.button("🚀 Run Prediction & Analysis", use_container_width=True):
+        inputs = {
+            'Cement': cement, 'Water': water, 'NCA': nca, 'NFA': nfa,
+            'RCA_P': rca_p, 'MRCA_P': mrca_p,
+            'Silica_Fume': silica, 'Fly_Ash': fly_ash,
+            'Nylon_Fiber': fiber, 'SP': sp
+        }
+
+        with st.spinner("Processing..."):
+            # دالة run_prediction_engine هي المسؤولة عن الحساب وعرض النتائج (Dashboard)
+            results = run_prediction_engine(inputs)
+            
+            if results is not None:
+                # تسجيل البيانات في الشيت (تم حذف استدعاء Dashboard المسبب للخطأ)
+                log_prediction_to_sheets(inputs, results)
+                
+                # حفظ الحالة
+                st.session_state['last_predictions'] = results
+                st.session_state['last_inputs'] = inputs
                     
 def handle_feedback():
     """تسجيل التقييم في ورقة Feedback"""
