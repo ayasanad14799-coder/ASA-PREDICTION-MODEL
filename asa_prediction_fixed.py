@@ -61,62 +61,61 @@ def check_login():
 # 3. دالة الهيدر الأكاديمي
 # =============================================================================
 def show_academic_header():
+    # 1. إعداد التنسيق العام (CSS)
     st.markdown("""
         <style>
-        .main-title { font-family: 'Times New Roman', Times, serif; color: #1E3A8A; text-align: center; font-size: 40px; font-weight: bold; margin-bottom: 0px; }
-        .sub-title { font-family: 'Times New Roman', Times, serif; color: #374151; text-align: center; font-size: 28px; margin-top: 5px; font-weight: bold; }
         .info-text { font-family: 'Times New Roman', Times, serif; text-align: center; font-size: 24px; line-height: 1.2; margin-top: 20px; }
         .supervision-text { font-family: 'Times New Roman', Times, serif; text-align: center; font-size: 20px; font-weight: bold; margin-top: 15px; color: #1E40AF; }
         </style>
     """, unsafe_allow_html=True)
 
+    # 2. إنشاء الأعمدة الثلاثة (شعار يمين - عناوين - شعار يسار)
     col_left, col_mid, col_right = st.columns([1, 3, 1])
-    
+
     with col_left:
-        st.image("https://raw.githubusercontent.com/ayasanad14799-coder/ASA-PREDICTION-MODEL/main/OIP.jfif", width=130)
+        st.image("https://raw.githubusercontent.com/ayasanad14799-coder/ASA-PREDICTION-MODEL/main/OIP.jfif", width=120)
+
     with col_mid:
-            # 1. اسم البرنامج (أزرق غامق - حجم متزن 42px)
-            st.markdown("""
-                <div style='text-align: center;'>
-                    <h1 style='color: #1E3A8A; font-size: 42px; font-weight: bold; margin-bottom: 5px;'>
-                        ASA-PREDICTION MODEL
-                    </h1>
-                </div>
-                """, unsafe_allow_html=True)
+        # اسم البرنامج (أزرق غامق - متناسق 42px)
+        st.markdown("""
+            <div style='text-align: center;'>
+                <h1 style='color: #1E3A8A; font-size: 42px; font-weight: bold; margin-bottom: 5px;'>
+                    ASA-PREDICTION MODEL
+                </h1>
+            </div>
+            """, unsafe_allow_html=True)
 
-            # 2. اسم البحث (أحمر - حجم متناسق 32px)
-            st.markdown("""
-                <div style='text-align: center;'>
-                    <h2 style='color: #D32F2F; font-size: 32px; font-weight: 600; margin-top: 0px; line-height: 1.3;'>
-                        Multi-criteria analysis of eco-efficient concrete from Technical, Environmental and Economic aspects
-                    </h2>
-                </div>
-                """, unsafe_allow_html=True)
+        # اسم البحث (أحمر - متناسق 32px)
+        st.markdown("""
+            <div style='text-align: center;'>
+                <h2 style='color: #D32F2F; font-size: 32px; font-weight: 600; margin-top: 0px; line-height: 1.3;'>
+                    Multi-criteria analysis of eco-efficient concrete from Technical, Environmental and Economic aspects
+                </h2>
+            </div>
+            """, unsafe_allow_html=True)
 
-            # خط فاصل أنيق ومحدد
-            st.markdown("<hr style='border: 0.5px solid #E5E7EB; width: 60%; margin: 20px auto;'>", unsafe_allow_html=True)
+        st.markdown("<hr style='border: 0.5px solid #E5E7EB; width: 70%; margin: 20px auto;'>", unsafe_allow_html=True)
 
-            # 3. بيانات الباحث والمشرفين (تنسيق احترافي متناسق)
-            st.markdown("""
-                <div style='text-align: center; color: #1F2937;'>
-                    <div style='margin-bottom: 25px;'>
-                        <span style='font-size: 22px; color: #4B5563;'>Prepared by:</span><br>
-                        <span style='font-size: 26px; font-weight: bold;'>Master's Researcher: Aya Mohammed Sanad Aboud</span>
-                    </div>
-                    
-                    <div style='margin-top: 15px;'>
-                        <span style='font-size: 24px; font-weight: bold; color: #4B5563;'>Under the Supervision of:</span><br>
-                        <span style='font-size: 26px; font-weight: 800; color: #111827;'>
-                            Prof. Ahmed Tahwia & Assoc. prof. Asser El-Sheikh
-                        </span>
-                    </div>
+        # بيانات الباحث والمشرفين (بخط عريض، كبير، وغير مائل)
+        st.markdown("""
+            <div style='text-align: center; color: #1F2937;'>
+                <div style='margin-bottom: 25px;'>
+                    <span style='font-size: 22px; color: #4B5563;'>Prepared by:</span><br>
+                    <span style='font-size: 26px; font-weight: bold;'>Master's Researcher: Aya Mohammed Sanad Aboud</span>
                 </div>
-                """, unsafe_allow_html=True)
+                <div style='margin-top: 15px;'>
+                    <span style='font-size: 24px; font-weight: bold; color: #4B5563;'>Under the Supervision of:</span><br>
+                    <span style='font-size: 26px; font-weight: 800; color: #111827;'>
+                        Prof. Ahmed Tahwia & Assoc. prof. Asser El-Sheikh
+                    </span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
     with col_right:
-        st.image("https://raw.githubusercontent.com/ayasanad14799-coder/ASA-PREDICTION-MODEL/main/LOGO.png", width=130)
-    
-    st.divider()
+        st.image("https://raw.githubusercontent.com/ayasanad14799-coder/ASA-PREDICTION-MODEL/main/LOGO.png", width=120)
 
+    st.divider()
 # =============================================================================
 # 4. تحميل الموديل والسكيلر
 # =============================================================================
