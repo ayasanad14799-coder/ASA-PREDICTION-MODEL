@@ -219,14 +219,15 @@ def run_prediction_engine(inputs):
 # 7. دالة الـ Radar Chart
 # =============================================================================
 def show_radar_chart(results):
-    # استخدام الفهارس الصحيحة للموديل (17 مخرج)
-    # Index 1 = CS 28-days
-    # Index 11 = CO2
-    # Index 13 = Cost
+    # استخدام الفهارس الصحيحة للموديل (من 0 إلى 16 فقط)
+    # Index 1 = CS 28-days (المقاومة)
+    # Index 11 = CO2 (الكربون)
+    # Index 13 = Cost (التكلفة)
     
-    tech_score = min(results[1] / 80, 1.0)     # المقاومة (بالنسبة لـ 80 MPa)
-    env_score = 1 - min(results[11] / 500, 1.0) # الكربون (كلما قل كان أفضل)
-    eco_score = 1 - min(results[13] / 150, 1.0) # التكلفة (كلما قلت كان أفضل)
+    # تحويل القيم لنسب مئوية (0-1) للعرض في الرادار
+    tech_score = min(results[1] / 80, 1.0)      # المقاومة بالنسبة لـ 80 MPa
+    env_score = 1 - min(results[11] / 500, 1.0)  # الكربون (كلما قل كان أفضل)
+    eco_score = 1 - min(results[13] / 150, 1.0)  # التكلفة (كلما قلت كان أفضل)
 
     categories = ['Technical (Strength)', 'Environmental (Eco)', 'Economic (Cost)']
     
@@ -235,8 +236,8 @@ def show_radar_chart(results):
         r=[tech_score, env_score, eco_score],
         theta=categories,
         fill='toself',
-        name='Mix Profile',
-        line_color='#1E3A8A'
+        name='Current Mix Performance',
+        line_color='#1E3A8A' # نفس اللون الأزرق الغامق للهيدر للتناسق
     ))
     
     fig.update_layout(
