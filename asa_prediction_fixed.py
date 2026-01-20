@@ -219,27 +219,31 @@ def run_prediction_engine(inputs):
 # 7. دالة الـ Radar Chart
 # =============================================================================
 def show_radar_chart(results):
-    tech_score = min(results[19] / 80, 1.0)
-    env_score = 1 - min(results[29] / 500, 1.0)
-    eco_score = 1 - min(results[31] / 150, 1.0)
+    # استخدام الفهارس الصحيحة للموديل (17 مخرج)
+    # Index 1 = CS 28-days
+    # Index 11 = CO2
+    # Index 13 = Cost
+    
+    tech_score = min(results[1] / 80, 1.0)     # المقاومة (بالنسبة لـ 80 MPa)
+    env_score = 1 - min(results[11] / 500, 1.0) # الكربون (كلما قل كان أفضل)
+    eco_score = 1 - min(results[13] / 150, 1.0) # التكلفة (كلما قلت كان أفضل)
 
-    categories = ['Technical (Strength)', 'Environmental (Low CO2)', 'Economic (Low Cost)']
+    categories = ['Technical (Strength)', 'Environmental (Eco)', 'Economic (Cost)']
     
     fig = go.Figure()
     fig.add_trace(go.Scatterpolar(
         r=[tech_score, env_score, eco_score],
         theta=categories,
         fill='toself',
-        name='Current Mix Performance',
+        name='Mix Profile',
         line_color='#1E3A8A'
     ))
     
     fig.update_layout(
         polar=dict(radialaxis=dict(visible=True, range=[0, 1])),
-        showlegend=True,
-        title="Mix Balance: Technical vs Environmental vs Economic"
+        showlegend=False,
+        title="Eco-Efficiency Radar Profile"
     )
-    
     st.plotly_chart(fig, use_container_width=True)
 
 # =============================================================================
