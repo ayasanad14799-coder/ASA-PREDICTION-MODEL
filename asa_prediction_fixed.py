@@ -75,34 +75,40 @@ def show_academic_header():
     with col_left:
         st.image("https://raw.githubusercontent.com/ayasanad14799-coder/ASA-PREDICTION-MODEL/main/OIP.jfif", width=130)
     with col_mid:
-            # 1. اسم البرنامج (أزرق غامق - خط كبير جداً)
+            # 1. اسم البرنامج (أزرق غامق - 42px)
             st.markdown("""
                 <div style='text-align: center;'>
-                    <h1 style='color: #1E3A8A; font-size: 50px; font-weight: bold; margin-bottom: 0px;'>
+                    <h1 style='color: #1E3A8A; font-size: 42px; font-weight: bold; margin-bottom: 5px;'>
                         ASA-PREDICTION MODEL
                     </h1>
                 </div>
                 """, unsafe_allow_html=True)
 
-            # 2. اسم البحث (أحمر - خط كبير وواضح)
+            # 2. اسم البحث (أحمر - 32px)
             st.markdown("""
                 <div style='text-align: center;'>
-                    <h2 style='color: #D32F2F; font-size: 28px; font-weight: 500; margin-top: 5px; line-height: 1.4;'>
+                    <h2 style='color: #D32F2F; font-size: 32px; font-weight: 600; margin-top: 0px; line-height: 1.3;'>
                         Multi-criteria analysis of eco-efficient concrete from Technical, Environmental and Economic aspects
                     </h2>
                 </div>
                 """, unsafe_allow_html=True)
 
-            # 3. بيانات الباحث والمشرفين (ممركزة ومنسقة)
+            # خط فاصل أنيق ومحدد
+            st.markdown("<hr style='border: 0.5px solid #E5E7EB; width: 60%; margin: 20px auto;'>", unsafe_allow_html=True)
+
+            # 3. بيانات الباحث والمشرفين (بدون إيطالي وبخطوط واضحة ومتناسقة)
             st.markdown("""
-                <div style='text-align: center; margin-top: 25px; padding-top: 15px; border-top: 1px solid #E5E7EB;'>
-                    <div style='font-size: 20px; color: #1F2937; margin-bottom: 15px;'>
-                        <b>Prepared by:</b><br>
-                        Master's Researcher: <b>Aya Mohammed Sanad Aboud</b>
+                <div style='text-align: center; color: #1F2937;'>
+                    <div style='margin-bottom: 20px;'>
+                        <span style='font-size: 22px; color: #4B5563;'>Prepared by:</span><br>
+                        <span style='font-size: 26px; font-weight: bold;'>Master's Researcher: Aya Mohammed Sanad Aboud</span>
                     </div>
-                    <div style='font-size: 18px; color: #4B5563; font-style: italic;'>
-                        Under the Supervision of:<br>
-                        Prof. Ahmed Tahwia & Assoc. prof. Asser El-Sheikh
+                    
+                    <div style='margin-top: 10px;'>
+                        <span style='font-size: 22px; color: #4B5563;'>Under the Supervision of:</span><br>
+                        <span style='font-size: 24px; font-weight: bold; color: #111827;'>
+                            Prof. Ahmed Tahwia & Assoc. prof. Asser El-Sheikh
+                        </span>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
