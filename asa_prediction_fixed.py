@@ -158,7 +158,7 @@ def check_ood(inputs):
 # =============================================================================
 # 6. دالة التنبؤ وعرض النتائج
 # =============================================================================
-ddef run_prediction_engine(inputs):
+def run_prediction_engine(inputs):
     model, scaler = load_assets()
     if model is None or scaler is None: return None
     
