@@ -483,9 +483,10 @@ def show_model_metrics():
 def log_prediction_to_sheets(inputs, results):
     """تسجيل بيانات الخلطة والنتائج المتوقعة في ورقة Predictions_Log"""
     try:
+        # إنشاء الاتصال بجوجل شيت
         conn = st.connection("gsheets", type=GSheetsConnection)
         
-        # تجهيز البيانات - تم تعديل الفهارس لتناسب الموديل (17 مخرج)
+        # تجهيز البيانات - تم ضبط الفهارس لتناسب الـ 17 مخرج للموديل
         new_row = pd.DataFrame([{
             "Timestamp": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
             "Cement": inputs['Cement'], 
@@ -499,21 +500,24 @@ def log_prediction_to_sheets(inputs, results):
             "Nylon_Fiber": inputs['Nylon_Fiber'], 
             "SP": inputs['SP'],
             "Predicted_CS28": round(results[1], 2),   # الفهرس الصحيح للمقاومة
-            "Predicted_CO2": round(results[11], 2),   # الفهرس الصحيح للكربون
+            "Predicted_CO2": round(results[11], 2),  # الفهرس الصحيح للكربون
             "Predicted_Cost": round(results[13], 2)   # الفهرس الصحيح للتكلفة
         }])
         
-        # قراءة البيانات وإضافة السطر الجديد
-        # تأكدي أن ورقة العمل في جوجل شيت اسمها "Predictions_Log" بالظبط
-        existing_data = conn.read(worksheet="Predictions_Log", ttl=0)
-        updated_df = pd.concat([existing_data, new_row], ignore_index=True)
+        # قراءة البيانات الحالية وإضافة السطر الجديد
+        try:
+            existing_data = conn.read(worksheet="Predictions_Log", ttl=0)
+            updated_df = pd.concat([existing_data, new_row], ignore_index=True)
+        except Exception:
+            # إذا كانت الورقة فارغة، نستخدم السطر الجديد كبداية
+            updated_df = new_row
+            
         conn.update(worksheet="Predictions_Log", data=updated_df)
-        
         st.sidebar.success("✅ Data logged to Google Sheets")
         
     except Exception as e:
-        # هذا السطر سيظهر لكِ المشكلة الحقيقية بلون أحمر
-        st.error(f"Actual Connection Error: {e}")
+        # عرض الخطأ الحقيقي في حال فشل الاتصال
+        st.sidebar.error(f"Actual Connection Error: {e}")
 
 def handle_feedback():
     """تسجيل التقييم في ورقة Feedback"""
@@ -550,6 +554,7 @@ def handle_feedback():
             try:
                 conn = st.connection("gsheets", type=GSheetsConnection)
                 
+                # تجهيز سطر التقييم
                 feedback_row = pd.DataFrame([{
                     "Date": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
                     "Name": user_name if user_name else "Anonymous",
@@ -558,24 +563,28 @@ def handle_feedback():
                     "Feedback": observation if observation else "No comments"
                 }])
                 
-                # تأكدي أن هناك ورقة (Tab) في ملف الإكسل اسمها "Feedback"
-                existing_f = conn.read(worksheet="Feedback", ttl=0)
-                updated_f = pd.concat([existing_f, feedback_row], ignore_index=True)
+                # تحديث ورقة Feedback
+                try:
+                    existing_f = conn.read(worksheet="Feedback", ttl=0)
+                    updated_f = pd.concat([existing_f, feedback_row], ignore_index=True)
+                except Exception:
+                    updated_f = feedback_row
+                    
                 conn.update(worksheet="Feedback", data=updated_f)
                 
                 st.success("✅ Thank you! Your feedback has been recorded.")
                 st.balloons()
                 
             except Exception as e:
-            # تم تعديل المسافات هنا (4 مسافات لليمين)
-            st.error(f"Actual Connection Error: {e}")
-            
-            with st.expander("Preview of your feedback"):
-                st.json({
-                    "Name": user_name if user_name else "Anonymous",
-                    "Stars": stars if stars else "Not rated",
-                    "Comments": observation if observation else "No comments"
-                })
+                # هذا السطر الآن مُزاح لليمين بشكل صحيح داخل بلوك الـ except
+                st.error(f"Actual Connection Error: {e}")
+                
+                with st.expander("Preview of your feedback"):
+                    st.json({
+                        "Name": user_name if user_name else "Anonymous",
+                        "Stars": stars if stars else "Not rated",
+                        "Comments": observation if observation else "No comments"
+                    })
 
 # =============================================================================
 # 12. الوثائق
