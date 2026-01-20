@@ -492,41 +492,94 @@ def show_model_metrics():
 # 11. نظام الفيدباك مع الربط بـ Google Sheets
 # =============================================================================
 def log_prediction_to_sheets(inputs, results):
-    """تسجيل بيانات الخلطة والنتائج المتوقعة في ورقة Predictions_Log"""
+    """تسجيل البيانات مع ضمان تطابق الأعمدة"""
     try:
         conn = st.connection("gsheets", type=GSheetsConnection)
         
-        # تجهيز البيانات
+        # تجهيز البيانات بأسماء أعمدة دقيقة جداً
         new_row = pd.DataFrame([{
             "Timestamp": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "Cement": inputs['Cement'], 
-            "Water": inputs['Water'], 
-            "NCA": inputs['NCA'], 
+            "Cement": inputs['Cement'],
+            "Water": inputs['Water'],
+            "NCA": inputs['NCA'],
             "NFA": inputs['NFA'],
-            "RCA_P": inputs['RCA_P'], 
-            "MRCA_P": inputs['MRCA_P'], 
-            "Silica_Fume": inputs['Silica_Fume'], 
+            "RCA_P": inputs['RCA_P'],
+            "MRCA_P": inputs['MRCA_P'],
+            "Silica_Fume": inputs['Silica_Fume'],
             "Fly_Ash": inputs['Fly_Ash'],
-            "Nylon_Fiber": inputs['Nylon_Fiber'], 
+            "Nylon_Fiber": inputs['Nylon_Fiber'],
             "SP": inputs['SP'],
             "Predicted_CS28": round(results[1], 2),
             "Predicted_CO2": round(results[11], 2),
             "Predicted_Cost": round(results[13], 2)
         }])
-        
+
         try:
+            # محاولة قراءة البيانات. لو فشل (لأن الشيت فاضي) هيعمل جدول جديد
             existing_data = conn.read(worksheet="Predictions_Log", ttl=0)
-            updated_df = pd.concat([existing_data, new_row], ignore_index=True)
+            if existing_data.empty:
+                updated_df = new_row
+            else:
+                updated_df = pd.concat([existing_data, new_row], ignore_index=True)
         except:
             updated_df = new_row
             
+        # تحديث الشيت (هنا سيتم كتابة العناوين أوتوماتيكياً لو الشيت فاضي)
         conn.update(worksheet="Predictions_Log", data=updated_df)
-        # دي رسالة هتظهر لك فوق عشان تتأكدي إنها اشتغلت
-        st.toast("✅ تم تسجيل نتائج التنبؤ في جوجل شيت بنجاح!", icon="💾") 
-        
+        st.toast("✅ تم الحفظ في جوجل شيت", icon="💾")
     except Exception as e:
-        st.error(f"⚠️ فشل تسجيل النتائج: {e}")
+        st.sidebar.error(f"Logging Error: {e}")
 
+def show_input_section():
+    st.markdown("### 🏗️ Design Mix Inputs")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("##### 🧱 Basic Materials (kg/m³)")
+        cement = st.number_input("Cement Amount", min_value=0.0, value=350.0, key="cem")
+        water = st.number_input("Water Amount", min_value=0.0, value=175.0, key="wat")
+        nca = st.number_input("NCA", min_value=0.0, value=1000.0, key="nca")
+        nfa = st.number_input("NFA", min_value=0.0, value=700.0, key="nfa")
+
+    with col2:
+        st.markdown("##### ♻️ Recycled Content (%)")
+        rca_p = st.number_input("RCA (%)", min_value=0.0, max_value=100.0, value=0.0)
+        mrca_p = st.number_input("MRCA (%)", min_value=0.0, max_value=70.0, value=0.0)
+
+    with col3:
+        st.markdown("##### ⚗️ Additives & Fibers")
+        silica = st.number_input("Silica Fume", min_value=0.0, value=0.0)
+        fly_ash = st.number_input("Fly Ash", min_value=0.0, value=0.0)
+        fiber = st.number_input("Nylon Fiber", min_value=0.0, value=0.0)
+        sp = st.number_input("Superplasticizer", min_value=0.0, value=2.0)
+
+    if st.button("🚀 Run Prediction & Analysis", use_container_width=True):
+        inputs = {
+            'Cement': cement, 'Water': water, 'NCA': nca, 'NFA': nfa,
+            'RCA_P': rca_p, 'MRCA_P': mrca_p,
+            'Silica_Fume': silica, 'Fly_Ash': fly_ash,
+            'Nylon_Fiber': fiber, 'SP': sp
+        }
+
+        with st.spinner("Processing..."):
+            results = run_prediction_engine(inputs)
+            
+            if results is not None:
+                # تسجيل البيانات أولاً
+                log_prediction_to_sheets(inputs, results)
+                
+                # حفظ الحالة
+                st.session_state['last_predictions'] = results
+                st.session_state['last_inputs'] = inputs
+                
+                # لتفادي الـ NameError: تأكدي إن الدالة دي مكتوبة كدة بالظبط في كودك
+                # لو اسم الدالة عندك مختلف (مثلاً Dashboard فقط)، غيري الاسم هنا
+                try:
+                    show_results_dashboard(results)
+                except NameError:
+                    st.warning("⚠️ دالة show_results_dashboard غير معرفة. يرجى التأكد من اسم الدالة في الكود.")
+                    
 def handle_feedback():
     """تسجيل التقييم في ورقة Feedback"""
     st.header("📝 User Feedback & Experience")
