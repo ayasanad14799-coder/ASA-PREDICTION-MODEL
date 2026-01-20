@@ -238,7 +238,7 @@ def run_prediction_engine(inputs):
             st.metric("Specific Gravity", f"{raw_preds[15]:.2f}")
         with ec2:
             st.metric("Sustainability Index", f"{raw_preds[16]:.5f}")
-            Show_radar_chart(raw_preds, inputs)
+            show_radar_chart(raw_preds, inputs)
 
     return raw_preds
 # =============================================================================
