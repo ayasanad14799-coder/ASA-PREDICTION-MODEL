@@ -295,55 +295,52 @@ def show_radar_chart(results, inputs):
 def show_input_section():
     st.markdown("### 🏗️ Design Mix Inputs")
     
-    # تقسيم المدخلات لثلاث مجموعات منظمة
     col1, col2, col3 = st.columns(3)
     
     with col1:
         st.markdown("##### 🧱 Basic Materials (kg/m³)")
-        cement = st.number_input("Cement", min_value=0.0, max_value=600.0, value=350.0, step=1.0)
-        water = st.number_input("Water", min_value=0.0, max_value=300.0, value=175.0, step=1.0)
-        nca = st.number_input("NCA (Natural Coarse)", min_value=0.0, max_value=1500.0, value=1000.0, step=1.0)
-        nfa = st.number_input("NFA (Natural Fine)", min_value=0.0, max_value=1200.0, value=700.0, step=1.0)
+        cement = st.number_input("Cement Amount", min_value=0.0, value=350.0, key="cem_unique")
+        water = st.number_input("Water Amount", min_value=0.0, value=175.0, key="wat_unique")
+        nca = st.number_input("NCA", min_value=0.0, value=1000.0, key="nca_unique")
+        nfa = st.number_input("NFA", min_value=0.0, value=700.0, key="nfa_unique")
 
     with col2:
         st.markdown("##### ♻️ Recycled Content (%)")
-        rca_p = st.number_input("RCA (%)", min_value=0.0, max_value=100.0, value=0.0, step=0.1)
-        mrca_p = st.number_input("MRCA (%)", min_value=0.0, max_value=70.0, value=0.0, step=0.1)
+        rca_p = st.number_input("RCA (%)", min_value=0.0, max_value=100.0, value=0.0)
+        mrca_p = st.number_input("MRCA (%)", min_value=0.0, max_value=70.0, value=0.0)
 
     with col3:
         st.markdown("##### ⚗️ Additives & Fibers")
-        silica = st.number_input("Silica Fume (kg/m³)", min_value=0.0, max_value=250.1, value=0.0, step=0.1)
-        fly_ash = st.number_input("Fly Ash (kg/m³)", min_value=0.0, max_value=166.5, value=0.0, step=0.1)
-        fiber = st.number_input("Nylon Fiber (kg/m³)", min_value=0.0, max_value=80.0, value=0.0, step=0.01)
-        sp = st.number_input("Superplasticizer (kg/m³)", min_value=0.0, max_value=14.3, value=2.0, step=0.1)
+        silica = st.number_input("Silica Fume", min_value=0.0, value=0.0)
+        fly_ash = st.number_input("Fly Ash", min_value=0.0, value=0.0)
+        fiber = st.number_input("Nylon Fiber", min_value=0.0, value=0.0)
+        sp = st.number_input("Superplasticizer", min_value=0.0, value=2.0)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # زر التشغيل الرئيسي
     if st.button("🚀 Run Prediction & Analysis", use_container_width=True):
-        # 1. تجميع كافة المدخلات في قاموس واحد
         inputs = {
             'Cement': cement, 'Water': water, 'NCA': nca, 'NFA': nfa,
             'RCA_P': rca_p, 'MRCA_P': mrca_p,
             'Silica_Fume': silica, 'Fly_Ash': fly_ash,
             'Nylon_Fiber': fiber, 'SP': sp
         }
+        
+        # تفعيل نظام التحقق من القيم (OOD Check)
+        check_ood(inputs) 
 
         with st.spinner("Calculating & Logging Results..."):
-            # 2. تشغيل محرك التوقعات (بتقوم بالعرض والحساب في نفس الوقت)
+            # تشغيل المحرك مرة واحدة فقط
             results = run_prediction_engine(inputs)
             
             if results is not None:
-                # 3. تسجيل النتائج في جوجل شيت فوراً
+                # تسجيل البيانات في الشيت
                 log_prediction_to_sheets(inputs, results)
                 
-                # 4. حفظ الحالة الحالية في التطبيق
+                # حفظ الحالة لاستخدامها في التبويبات الأخرى
                 st.session_state['last_predictions'] = results
                 st.session_state['last_inputs'] = inputs
-                
-                # تم حذف سطر show_results_dashboard المسبب للخطأ
             else:
-                # رسالة الخطأ تظهر فقط في حالة فشل الموديل (خارج بلوك النجاح)
                 st.error("⚠️ Prediction failed. Please check your input values.")
 
 # =============================================================================
