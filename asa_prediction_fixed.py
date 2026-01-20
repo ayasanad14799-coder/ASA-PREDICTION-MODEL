@@ -293,26 +293,25 @@ def show_radar_chart(results, inputs):
 # 8. واجهة المدخلات (مُحدَّثة)
 # =============================================================================
 def show_input_section():
-    st.subheader("📥 Concrete Mix Components (Inputs)")
-    st.info("Please enter the quantities within the specified ranges based on the database constraints.")
+    st.markdown("### 🏗️ Design Mix Inputs")
     
-    # تقسيم المدخلات لـ 3 مجموعات متناسقة
-    group1, group2, group3 = st.columns(3)
+    # تقسيم المدخلات لثلاث مجموعات منظمة
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("##### 🧱 Basic Materials (kg/m³)")
+        cement = st.number_input("Cement", min_value=0.0, max_value=600.0, value=350.0, step=1.0)
+        water = st.number_input("Water", min_value=0.0, max_value=300.0, value=175.0, step=1.0)
+        nca = st.number_input("NCA (Natural Coarse)", min_value=0.0, max_value=1500.0, value=1000.0, step=1.0)
+        nfa = st.number_input("NFA (Natural Fine)", min_value=0.0, max_value=1200.0, value=700.0, step=1.0)
 
-    with group1:
-        st.markdown("##### 🧱 Base Materials")
-        cement = st.number_input("Cement (kg/m³)", min_value=6.4, max_value=578.1, value=380.0, step=0.1)
-        water = st.number_input("Water (kg/m³)", min_value=0.0, max_value=339.1, value=175.0, step=0.1)
-        nca = st.number_input("NCA (kg/m³)", min_value=0.0, max_value=1285.0, value=1100.0, step=1.0)
-        nfa = st.number_input("NFA (kg/m³)", min_value=0.0, max_value=1100.1, value=700.0, step=1.0)
-
-    with group2:
+    with col2:
         st.markdown("##### ♻️ Recycled Content (%)")
         rca_p = st.number_input("RCA (%)", min_value=0.0, max_value=100.0, value=0.0, step=0.1)
         mrca_p = st.number_input("MRCA (%)", min_value=0.0, max_value=70.0, value=0.0, step=0.1)
-        # تم حذف RFA هنا لأنه غير مدعوم في الموديل الحالي
+        # ملاحظة: تم استبعاد RFA بناءً على تحديث الموديل الأخير
 
-    with group3:
+    with col3:
         st.markdown("##### ⚗️ Additives & Fibers")
         silica = st.number_input("Silica Fume (kg/m³)", min_value=0.0, max_value=250.1, value=0.0, step=0.1)
         fly_ash = st.number_input("Fly Ash (kg/m³)", min_value=0.0, max_value=166.5, value=0.0, step=0.1)
@@ -321,20 +320,32 @@ def show_input_section():
 
     st.markdown("<br>", unsafe_allow_html=True)
 
+    # زر التشغيل الرئيسي
     if st.button("🚀 Run Prediction & Analysis", use_container_width=True):
-        # تجميع الـ 10 مدخلات الأساسية (الـ 11 هو W/C ويحسب داخلياً)
+        # 1. تجميع كافة المدخلات في قاموس واحد
         inputs = {
             'Cement': cement, 'Water': water, 'NCA': nca, 'NFA': nfa,
             'RCA_P': rca_p, 'MRCA_P': mrca_p,
-            'Silica_Fume': silica, 'Fly_Ash': fly_ash, 
+            'Silica_Fume': silica, 'Fly_Ash': fly_ash,
             'Nylon_Fiber': fiber, 'SP': sp
         }
-        
-        with st.spinner("Processing..."):
-            predictions = run_prediction_engine(inputs)
-            if predictions is not None:
-                st.session_state['last_predictions'] = predictions
+
+        with st.spinner("Calculating & Logging Results..."):
+            # 2. تشغيل محرك التوقعات (مرة واحدة فقط للسرعة)
+            results = run_prediction_engine(inputs)
+            
+            if results is not None:
+                # 3. السطر السحري: تسجيل النتائج في جوجل شيت فوراً
+                log_prediction_to_sheets(inputs, results)
+                
+                # 4. حفظ الحالة الحالية في التطبيق
+                st.session_state['last_predictions'] = results
                 st.session_state['last_inputs'] = inputs
+                
+                # 5. عرض لوحة النتائج النهائية للمستخدم
+                show_results_dashboard(results)
+            else:
+                st.error("⚠️ Prediction failed. Please check your input values.")
 
 # =============================================================================
 # 9. تبويب المحسن الذكي
@@ -503,21 +514,18 @@ def log_prediction_to_sheets(inputs, results):
             "Predicted_Cost": round(results[13], 2)
         }])
         
-        # محاولة القراءة والتحديث
         try:
-            # تأكدي أن الاسم في الشيت "Predictions_Log" بدون مسافات زيادة
             existing_data = conn.read(worksheet="Predictions_Log", ttl=0)
             updated_df = pd.concat([existing_data, new_row], ignore_index=True)
-        except Exception:
-            # لو الورقة فاضية تماماً، استخدم السطر الجديد كبداية
+        except:
             updated_df = new_row
             
         conn.update(worksheet="Predictions_Log", data=updated_df)
-        st.sidebar.success("✅ Prediction saved to Sheets!")
+        # دي رسالة هتظهر لك فوق عشان تتأكدي إنها اشتغلت
+        st.toast("✅ تم تسجيل نتائج التنبؤ في جوجل شيت بنجاح!", icon="💾") 
         
     except Exception as e:
-        # غيرت دي لـ st.error عشان تشوفي الخطأ في وشك لو حصل
-        st.error(f"⚠️ Predictions Log Error: {e}")
+        st.error(f"⚠️ فشل تسجيل النتائج: {e}")
 
 def handle_feedback():
     """تسجيل التقييم في ورقة Feedback"""
