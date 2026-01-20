@@ -295,14 +295,13 @@ def show_radar_chart(results, inputs):
 def show_input_section():
     st.subheader("📥 Concrete Mix Components (Inputs)")
     st.info("Please enter the quantities within the specified ranges based on the database constraints.")
-    st.write("##### 📝 Note: Enter exact laboratory values. Use (0) for absent materials.")
-
+    
+    # تقسيم المدخلات لـ 3 مجموعات متناسقة
     group1, group2, group3 = st.columns(3)
 
     with group1:
         st.markdown("##### 🧱 Base Materials")
-        cement = st.number_input("Cement (kg/m³)", min_value=6.4, max_value=578.1, value=380.0, step=0.1, 
-                                 help="The total quantity of Portland cement in the mix.")
+        cement = st.number_input("Cement (kg/m³)", min_value=6.4, max_value=578.1, value=380.0, step=0.1)
         water = st.number_input("Water (kg/m³)", min_value=0.0, max_value=339.1, value=175.0, step=0.1)
         nca = st.number_input("NCA (kg/m³)", min_value=0.0, max_value=1285.0, value=1100.0, step=1.0)
         nfa = st.number_input("NFA (kg/m³)", min_value=0.0, max_value=1100.1, value=700.0, step=1.0)
@@ -311,7 +310,7 @@ def show_input_section():
         st.markdown("##### ♻️ Recycled Content (%)")
         rca_p = st.number_input("RCA (%)", min_value=0.0, max_value=100.0, value=0.0, step=0.1)
         mrca_p = st.number_input("MRCA (%)", min_value=0.0, max_value=70.0, value=0.0, step=0.1)
-        rfa_p = st.number_input("RFA (%)", min_value=0.0, max_value=76.1, value=0.0, step=0.1)
+        # تم حذف RFA هنا لأنه غير مدعوم في الموديل الحالي
 
     with group3:
         st.markdown("##### ⚗️ Additives & Fibers")
@@ -321,79 +320,81 @@ def show_input_section():
         sp = st.number_input("Superplasticizer (kg/m³)", min_value=0.0, max_value=14.3, value=2.0, step=0.1)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    
-    # زر التشغيل
+
     if st.button("🚀 Run Prediction & Analysis", use_container_width=True):
-        # تجميع المدخلات
+        # تجميع الـ 10 مدخلات الأساسية (الـ 11 هو W/C ويحسب داخلياً)
         inputs = {
             'Cement': cement, 'Water': water, 'NCA': nca, 'NFA': nfa,
-            'RCA_P': rca_p, 'MRCA_P': mrca_p, 'RFA_P': rfa_p,
+            'RCA_P': rca_p, 'MRCA_P': mrca_p,
             'Silica_Fume': silica, 'Fly_Ash': fly_ash, 
             'Nylon_Fiber': fiber, 'SP': sp
         }
         
-        with st.spinner("Processing inputs... Model is calculating the results."):
-            # 1. إجراء التنبؤ
+        with st.spinner("Processing..."):
             predictions = run_prediction_engine(inputs)
-            
             if predictions is not None:
-                # 2. حفظ النتائج في session_state
                 st.session_state['last_predictions'] = predictions
                 st.session_state['last_inputs'] = inputs
-                
-                # 3. تسجيل البيانات في Google Sheets
-                log_prediction_to_sheets(inputs, predictions)
 
 # =============================================================================
 # 9. تبويب المحسن الذكي
 # =============================================================================
 def show_optimizer_tab():
     st.header("⚖️ AI-Based Mix Optimizer")
-    st.markdown("##### Find the most eco-friendly mix for your target strength")
-    st.write("This tool searches the database for existing mixes that match your target strength with the highest sustainability index.")
+    st.markdown("##### Find the most eco-friendly & cost-effective mix for your target strength")
+    st.write("This tool searches the database for real mixes that balance strength, sustainability, and budget.")
 
-    col_target, col_empty = st.columns([1, 2])
+    col_target, col_tol = st.columns(2)
     with col_target:
         target_cs = st.number_input("Enter Target Strength (28d) - MPa", min_value=10.0, max_value=80.0, value=40.0, step=1.0)
+    with col_tol:
+        tolerance = st.slider("Strength Tolerance (± MPa)", 1.0, 10.0, 3.0)
     
-    if st.button("🚀 GENERATE TOP GREEN MIXES", use_container_width=True):
+    if st.button("🚀 GENERATE TOP OPTIMIZED MIXES", use_container_width=True):
         try:
             db = pd.read_csv('Trail3_DIAMOND_DATABASE.csv', sep=';')
             
-            tolerance = 3.0
+            # فلترة بناءً على المدى المختار
             filtered_db = db[(db['CS_28'] >= target_cs - tolerance) & (db['CS_28'] <= target_cs + tolerance)]
             
             if not filtered_db.empty:
-                top_mixes = filtered_db.sort_values(by=['Sustainability', 'CO2'], ascending=[False, True]).head(5)
+                # الترتيب: الأفضل استدامة، ثم الأقل كربون، ثم الأقل تكلفة
+                top_mixes = filtered_db.sort_values(by=['Sustainability', 'CO2', 'Cost'], ascending=[False, True, True]).head(5)
                 
-                st.success(f"✅ Found {len(top_mixes)} optimized mixes matching your target!")
+                st.success(f"✅ Found {len(top_mixes)} optimized mixes in the database!")
                 
-                display_cols = ['Mix_ID', 'Cement', 'Water', 'Silica_Fume', 'Fly_Ash', 'Nylon_Fiber', 'CS_28', 'CO2', 'Sustainability']
+                # الأعمدة المختارة للعرض (شاملة التكلفة والركام المعاد تدويره)
+                display_cols = ['Mix_ID', 'Cement', 'RCA_P', 'CS_28', 'CO2', 'Cost', 'Sustainability']
+                available_cols = [c for c in display_cols if c in top_mixes.columns]
                 
+                # عرض الجدول مع تمييز الأفضل (أعلى استدامة، أقل كربون، أقل تكلفة)
                 st.dataframe(
-                    top_mixes[display_cols].style.highlight_max(subset=['Sustainability'], color='#D1FAE5')
-                    .highlight_min(subset=['CO2'], color='#D1FAE5'),
+                    top_mixes[available_cols].style.highlight_max(subset=['Sustainability'], color='#D1FAE5')
+                    .highlight_min(subset=['CO2', 'Cost'], color='#D1FAE5')
+                    .format(precision=2),
                     use_container_width=True
                 )
                 
-                st.info("💡 Tip: The highlighted values represent the best eco-efficiency in terms of highest sustainability and lowest CO2 emissions.")
+                st.info("💡 **Green Highlights:** Best Sustainability Index, Lowest Carbon Footprint, and Lowest Cost.")
                 
-                st.markdown("### 📈 Top 5 Mixes Comparison")
-                fig_opt = px.bar(
-                    top_mixes, x='Mix_ID', y='Sustainability', 
-                    color='CO2', title="Sustainability Index vs Carbon Footprint",
+                # رسم بياني ثلاثي الأبعاد للأداء (Sustainability vs Cost)
+                st.markdown("### 📊 Economic vs Environmental Performance")
+                fig_opt = px.scatter(
+                    top_mixes, x='Cost', y='Sustainability', 
+                    size='CS_28', color='CO2',
+                    hover_name='Mix_ID',
+                    text='Mix_ID',
+                    title="Cost vs Sustainability (Bubble size = Strength)",
                     color_continuous_scale='RdYlGn_r'
                 )
+                fig_opt.update_traces(textposition='top center')
                 st.plotly_chart(fig_opt, use_container_width=True)
                 
             else:
-                st.warning("No mixes found in the database for this specific target. Try expanding your target range.")
+                st.warning(f"No mixes found between {target_cs-tolerance} and {target_cs+tolerance} MPa. Try a wider tolerance.")
                 
-        except FileNotFoundError:
-            st.error("Database file 'Trail3_DIAMOND_DATABASE.csv' not found. Please ensure it's in the same directory as app.py")
         except Exception as e:
             st.error(f"Error accessing database: {e}")
-
 # =============================================================================
 # 10. لوحة تقييم الموديل
 # =============================================================================
@@ -479,12 +480,12 @@ def show_model_metrics():
 # =============================================================================
 # 11. نظام الفيدباك مع الربط بـ Google Sheets
 # =============================================================================
-def log_prediction_to_sheets(inputs, results):
+ddef log_prediction_to_sheets(inputs, results):
     """تسجيل بيانات الخلطة والنتائج المتوقعة في ورقة Predictions_Log"""
     try:
         conn = st.connection("gsheets", type=GSheetsConnection)
         
-        # تجهيز البيانات
+        # تجهيز البيانات - تم تعديل الفهارس لتناسب الموديل (17 مخرج)
         new_row = pd.DataFrame([{
             "Timestamp": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
             "Cement": inputs['Cement'], 
@@ -493,17 +494,17 @@ def log_prediction_to_sheets(inputs, results):
             "NFA": inputs['NFA'],
             "RCA_P": inputs['RCA_P'], 
             "MRCA_P": inputs['MRCA_P'], 
-            "RFA_P": inputs['RFA_P'],
             "Silica_Fume": inputs['Silica_Fume'], 
             "Fly_Ash": inputs['Fly_Ash'],
             "Nylon_Fiber": inputs['Nylon_Fiber'], 
             "SP": inputs['SP'],
-            "Predicted_CS28": round(results[19], 2),
-            "Predicted_CO2": round(results[29], 2),
-            "Predicted_Cost": round(results[31], 2)
+            "Predicted_CS28": round(results[1], 2),   # الفهرس الصحيح للمقاومة
+            "Predicted_CO2": round(results[11], 2),   # الفهرس الصحيح للكربون
+            "Predicted_Cost": round(results[13], 2)   # الفهرس الصحيح للتكلفة
         }])
         
-        # قراءة البيانات الحالية وإضافة السطر الجديد
+        # قراءة البيانات وإضافة السطر الجديد
+        # تأكدي أن ورقة العمل في جوجل شيت اسمها "Predictions_Log" بالظبط
         existing_data = conn.read(worksheet="Predictions_Log", ttl=0)
         updated_df = pd.concat([existing_data, new_row], ignore_index=True)
         conn.update(worksheet="Predictions_Log", data=updated_df)
@@ -511,7 +512,9 @@ def log_prediction_to_sheets(inputs, results):
         st.sidebar.success("✅ Data logged to Google Sheets")
         
     except Exception as e:
-        st.sidebar.warning(f"📝 Logging note: {str(e)[:50]}... (Will be active after deployment)")
+        # تقصير رسالة الخطأ لتظهر بشكل لائق في الجنب
+        error_msg = str(e)[:50]
+        st.sidebar.warning(f"📝 Logging Note: {error_msg}... (Active after full setup)")
 
 def handle_feedback():
     """تسجيل التقييم في ورقة Feedback"""
@@ -538,7 +541,7 @@ def handle_feedback():
         
         observation = st.text_area(
             "Your Observations & Suggestions",
-            placeholder="Share your experience with the predictions, any discrepancies with lab results, or suggestions for improvement...",
+            placeholder="Share your experience with the predictions...",
             height=150
         )
         
@@ -556,49 +559,23 @@ def handle_feedback():
                     "Feedback": observation if observation else "No comments"
                 }])
                 
+                # تأكدي أن هناك ورقة (Tab) في ملف الإكسل اسمها "Feedback"
                 existing_f = conn.read(worksheet="Feedback", ttl=0)
                 updated_f = pd.concat([existing_f, feedback_row], ignore_index=True)
                 conn.update(worksheet="Feedback", data=updated_f)
                 
-                st.success("✅ Thank you! Your feedback has been recorded in our research database.")
+                st.success("✅ Thank you! Your feedback has been recorded.")
                 st.balloons()
                 
             except Exception as e:
-                st.warning("""
-                ⚠️ **Connection Note:** Feedback will be active after deployment with proper secrets configuration.
+                st.warning("⚠️ Connection Note: Feedback will be active after deployment.")
                 
-                Your feedback is valuable! Please save it and submit after the system is deployed to Streamlit Cloud.
-                """)
-                
-                # عرض ما كان سيتم إرساله
                 with st.expander("Preview of your feedback"):
                     st.json({
                         "Name": user_name if user_name else "Anonymous",
                         "Stars": stars if stars else "Not rated",
                         "Comments": observation if observation else "No comments"
                     })
-    
-    st.divider()
-    
-    # إضافة إحصائيات (إذا أمكن قراءتها)
-    try:
-        conn = st.connection("gsheets", type=GSheetsConnection)
-        feedback_data = conn.read(worksheet="Feedback", ttl=60)
-        
-        if not feedback_data.empty and len(feedback_data) > 0:
-            st.markdown("### 📊 Feedback Statistics")
-            col1, col2, col3 = st.columns(3)
-            col1.metric("Total Responses", len(feedback_data))
-            
-            # حساب متوسط التقييم إذا كان موجوداً
-            if 'Stars' in feedback_data.columns:
-                avg_stars = feedback_data['Stars'].replace("Not rated", np.nan).astype(float).mean()
-                if not np.isnan(avg_stars):
-                    col2.metric("Average Rating", f"{avg_stars:.1f} ⭐")
-            
-            col3.metric("Database Status", "🟢 Active")
-    except:
-        pass
 
 # =============================================================================
 # 12. الوثائق
