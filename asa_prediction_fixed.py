@@ -76,7 +76,7 @@ def show_academic_header():
         st.image("https://raw.githubusercontent.com/ayasanad14799-coder/ASA-PREDICTION-MODEL/main/OIP.jfif", width=130)
     with col_mid:
             # 1. اسم البرنامج (أزرق غامق - 42px)
-            st.markdown("""
+        st.markdown("""
                 <div style='text-align: center;'>
                     <h1 style='color: #1E3A8A; font-size: 42px; font-weight: bold; margin-bottom: 5px;'>
                         ASA-PREDICTION MODEL
@@ -85,7 +85,7 @@ def show_academic_header():
                 """, unsafe_allow_html=True)
 
             # 2. اسم البحث (أحمر - 32px)
-            st.markdown("""
+         st.markdown("""
                 <div style='text-align: center;'>
                     <h2 style='color: #D32F2F; font-size: 32px; font-weight: 600; margin-top: 0px; line-height: 1.3;'>
                         Multi-criteria analysis of eco-efficient concrete from Technical, Environmental and Economic aspects
