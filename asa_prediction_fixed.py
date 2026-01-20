@@ -567,7 +567,8 @@ def handle_feedback():
                 st.balloons()
                 
             except Exception as e:
-                st.warning("⚠️ Connection Note: Feedback will be active after deployment.")
+        # هذا السطر سيظهر لكِ المشكلة الحقيقية بلون أحمر
+        st.error(f"Actual Connection Error: {e}")
                 
                 with st.expander("Preview of your feedback"):
                     st.json({
