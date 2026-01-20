@@ -75,8 +75,8 @@ def show_academic_header():
     with col_left:
         st.image("https://raw.githubusercontent.com/ayasanad14799-coder/ASA-PREDICTION-MODEL/main/OIP.jfif", width=130)
     with col_mid:
-            # 1. اسم البرنامج (أزرق غامق - 42px)
-        st.markdown("""
+            # 1. اسم البرنامج (أزرق غامق - حجم متزن 42px)
+            st.markdown("""
                 <div style='text-align: center;'>
                     <h1 style='color: #1E3A8A; font-size: 42px; font-weight: bold; margin-bottom: 5px;'>
                         ASA-PREDICTION MODEL
@@ -84,8 +84,8 @@ def show_academic_header():
                 </div>
                 """, unsafe_allow_html=True)
 
-            # 2. اسم البحث (أحمر - 32px)
-         st.markdown("""
+            # 2. اسم البحث (أحمر - حجم متناسق 32px)
+            st.markdown("""
                 <div style='text-align: center;'>
                     <h2 style='color: #D32F2F; font-size: 32px; font-weight: 600; margin-top: 0px; line-height: 1.3;'>
                         Multi-criteria analysis of eco-efficient concrete from Technical, Environmental and Economic aspects
@@ -96,17 +96,17 @@ def show_academic_header():
             # خط فاصل أنيق ومحدد
             st.markdown("<hr style='border: 0.5px solid #E5E7EB; width: 60%; margin: 20px auto;'>", unsafe_allow_html=True)
 
-            # 3. بيانات الباحث والمشرفين (بدون إيطالي وبخطوط واضحة ومتناسقة)
+            # 3. بيانات الباحث والمشرفين (تنسيق احترافي متناسق)
             st.markdown("""
                 <div style='text-align: center; color: #1F2937;'>
-                    <div style='margin-bottom: 20px;'>
+                    <div style='margin-bottom: 25px;'>
                         <span style='font-size: 22px; color: #4B5563;'>Prepared by:</span><br>
                         <span style='font-size: 26px; font-weight: bold;'>Master's Researcher: Aya Mohammed Sanad Aboud</span>
                     </div>
                     
-                    <div style='margin-top: 10px;'>
-                        <span style='font-size: 22px; color: #4B5563;'>Under the Supervision of:</span><br>
-                        <span style='font-size: 24px; font-weight: bold; color: #111827;'>
+                    <div style='margin-top: 15px;'>
+                        <span style='font-size: 24px; font-weight: bold; color: #4B5563;'>Under the Supervision of:</span><br>
+                        <span style='font-size: 26px; font-weight: 800; color: #111827;'>
                             Prof. Ahmed Tahwia & Assoc. prof. Asser El-Sheikh
                         </span>
                     </div>
