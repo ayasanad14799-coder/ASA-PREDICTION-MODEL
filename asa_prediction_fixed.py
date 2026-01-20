@@ -161,89 +161,131 @@ def run_prediction_engine(inputs):
     model, scaler = load_assets()
     if model is None or scaler is None: return None
     
-    # حساب W/C (المدخل رقم 10)
+    # حساب W/C - المدخل رقم 10
     wc_val = inputs['Water'] / inputs['Cement'] if inputs['Cement'] > 0 else 0
     
-    # 1. المدخلات الـ 11 بالترتيب الصحيح للموديل
+    # 1. تجميع المدخلات الـ 11
     feature_list = [
         inputs['Cement'], inputs['Water'], inputs['NCA'], inputs['NFA'],
         inputs['RCA_P'], inputs['MRCA_P'], inputs['Silica_Fume'], 
         inputs['Fly_Ash'], inputs['Nylon_Fiber'], wc_val, inputs['SP']
     ]
     
-    # 2. التنبؤ
+    # 2. التنبؤ الأولي
     vector = np.array(feature_list).reshape(1, -1)
     raw_preds = model.predict(scaler.transform(vector))[0]
-    
-    st.success("🎯 Prediction Completed Successfully!")
 
-    # 3. تقسيم النتائج إلى 3 تبويبات رئيسية
-    tab_mech, tab_env, tab_eco = st.tabs([
-        "🏗️ Mechanical Performance", 
-        "🌱 Environmental Impact", 
-        "💰 Economic & Sustainability"
-    ])
+    # --- [ المنطق الهندسي الذكي للقيم التقديرية ] ---
+    cs28 = raw_preds[1]
+    
+    # تقدير مقاومة 7 أيام
+    cs7 = raw_preds[0]
+    is_cs7_est = False
+    if cs7 <= 1.5:
+        cs7 = cs28 * 0.70
+        is_cs7_est = True # علامة أنها تقديرية
+        
+    # تقدير مقاومة 90 يوماً
+    cs90 = raw_preds[2]
+    is_cs90_est = False
+    if cs90 <= cs28:
+        cs90 = cs28 * 1.15
+        is_cs90_est = True # علامة أنها تقديرية
+
+    # تقدير الطاقة (Energy) بناءً على مكونات الخلطة
+    energy_val = (inputs['Cement'] * 4.8) + \
+                 ((inputs['NCA'] + inputs['NFA']) * 0.05) + \
+                 ((inputs['RCA_P'] + inputs['MRCA_P']) * 0.02) + \
+                 (inputs['Silica_Fume'] * 0.1) + \
+                 (inputs['Fly_Ash'] * 0.1)
+    # ----------------------------------------------
+
+    st.success("✅ Analysis Completed: Using Hybrid AI-Engineering Model")
+
+    tab_mech, tab_env, tab_eco = st.tabs(["🏗️ Mechanical", "🌱 Environmental", "💰 Economic"])
 
     with tab_mech:
-        c1, c2 = st.columns(2)
-        with c1:
-            st.metric("CS 7-days (MPa)", f"{raw_preds[0]:.2f}")     # الفهرس 0
-            st.metric("CS 28-days (MPa)", f"{raw_preds[1]:.2f}")    # الفهرس 1 (القيمة الحقيقية)
-            st.metric("CS 90-days (MPa)", f"{raw_preds[2]:.2f}")    # الفهرس 2
-        with c2:
-            st.metric("Tensile Strength (MPa)", f"{raw_preds[3]:.2f}") # الفهرس 3
-            st.metric("Flexural Strength (MPa)", f"{raw_preds[4]:.2f}")# الفهرس 4
-            st.metric("Elastic Modulus (GPa)", f"{raw_preds[5]:.2f}")  # الفهرس 5
+        m1, m2 = st.columns(2)
+        with m1:
+            # إضافة (Estimated) بجانب العنوان إذا تم استخدام المعادلة
+            label_7 = "CS 7-days (MPa) (Estimated)" if is_cs7_est else "CS 7-days (MPa)"
+            st.metric(label_7, f"{cs7:.2f}")
+            
+            st.metric("CS 28-days (MPa)", f"{cs28:.2f}")
+            
+            label_90 = "CS 90-days (MPa) (Estimated)" if is_cs90_est else "CS 90-days (MPa)"
+            st.metric(label_90, f"{cs90:.2f}")
+            
+        with m2:
+            st.metric("Tensile Strength (MPa)", f"{raw_preds[3]:.2f}")
+            st.metric("Flexural Strength (MPa)", f"{raw_preds[4]:.2f}")
+            st.metric("Elastic Modulus (GPa)", f"{raw_preds[5]:.2f}")
 
     with tab_env:
         e1, e2 = st.columns(2)
         with e1:
-            st.metric("CO2 Footprint (kg/m³)", f"{raw_preds[11]:.2f}") # الفهرس 11
-            st.metric("Energy Demand (MJ/m³)", f"{raw_preds[12]:.2f}") # الفهرس 12
+            st.metric("CO2 Footprint (kg/m³)", f"{raw_preds[11]:.2f}")
+            # الطاقة دائماً ستظهر كـ Estimated لأن الموديل الأصلي بياناته ناقصة
+            st.metric("Energy Demand (MJ/m³) (Estimated)", f"{energy_val:.2f}")
         with e2:
-            st.metric("UPV (m/s)", f"{raw_preds[7]:.0f}")              # الفهرس 7
-            st.metric("Water Absorption (%)", f"{raw_preds[6]:.2f}")    # الفهرس 6
+            st.metric("UPV (m/s)", f"{raw_preds[7]:.0f}")
+            st.metric("Water Absorption (%)", f"{raw_preds[6]:.2f}")
 
     with tab_eco:
         ec1, ec2 = st.columns(2)
         with ec1:
-            st.metric("Total Cost (USD/m³)", f"{raw_preds[13]:.2f}")    # الفهرس 13
+            st.metric("Total Cost (USD/m³)", f"{raw_preds[13]:.2f}")
+            st.metric("Specific Gravity", f"{raw_preds[15]:.2f}")
         with ec2:
-            st.metric("Sustainability Index", f"{raw_preds[16]:.5f}")   # الفهرس 16
-        
-        # عرض المخطط الراداري
-        show_radar_chart(raw_preds)
+            st.metric("Sustainability Index", f"{raw_preds[16]:.5f}")
+            how_radar_chart(raw_preds, inputs)
 
     return raw_preds
 # =============================================================================
 # 7. دالة الـ Radar Chart
 # =============================================================================
-def show_radar_chart(results):
-    # استخدام الفهارس الصحيحة للموديل (من 0 إلى 16 فقط)
-    # Index 1 = CS 28-days (المقاومة)
-    # Index 11 = CO2 (الكربون)
-    # Index 13 = Cost (التكلفة)
+def show_radar_chart(results, inputs):
+    # نتائج الموديل (AI)
+    cs28 = results[1]      # المقاومة
+    co2 = results[11]      # الكربون
+    cost = results[13]     # التكلفة
     
-    # تحويل القيم لنسب مئوية (0-1) للعرض في الرادار
-    tech_score = min(results[1] / 80, 1.0)      # المقاومة بالنسبة لـ 80 MPa
-    env_score = 1 - min(results[11] / 500, 1.0)  # الكربون (كلما قل كان أفضل)
-    eco_score = 1 - min(results[13] / 150, 1.0)  # التكلفة (كلما قلت كان أفضل)
+    # القيمة التقديرية للطاقة (Engineering Equation)
+    energy_estimated = (inputs['Cement'] * 4.8) + \
+                       ((inputs['NCA'] + inputs['NFA']) * 0.05) + \
+                       ((inputs['RCA_P'] + inputs['MRCA_P']) * 0.02)
 
-    categories = ['Technical (Strength)', 'Environmental (Eco)', 'Economic (Cost)']
-    
+    # تحويل القيم لنسب مئوية (0-1) ليكون الرسم منطقياً
+    # ملحوظة: في البيئة والتكلفة، كلما قل الرقم كانت الكفاءة أعلى (1 - Value)
+    strength_score = min(cs28 / 70, 1.0)
+    eco_score = 1 - min(co2 / 500, 1.0)
+    cost_score = 1 - min(cost / 150, 1.0)
+    energy_score = 1 - min(energy_estimated / 2500, 1.0)
+
+    categories = ['Structural Strength', 'CO2 Efficiency', 'Cost Efficiency', 'Energy Efficiency']
+    scores = [strength_score, eco_score, cost_score, energy_score]
+
     fig = go.Figure()
     fig.add_trace(go.Scatterpolar(
-        r=[tech_score, env_score, eco_score],
+        r=scores,
         theta=categories,
         fill='toself',
-        name='Current Mix Performance',
-        line_color='#1E3A8A' # نفس اللون الأزرق الغامق للهيدر للتناسق
+        name='Mix Sustainability Profile',
+        line_color='#D32F2F', # أحمر ليتماشى مع هوية البحث
+        marker=dict(size=8)
     ))
-    
+
     fig.update_layout(
-        polar=dict(radialaxis=dict(visible=True, range=[0, 1])),
+        polar=dict(
+            radialaxis=dict(visible=True, range=[0, 1], tickformat=".1%"),
+            angularaxis=dict(direction="clockwise")
+        ),
         showlegend=False,
-        title="Eco-Efficiency Radar Profile"
+        title={
+            'text': "<b>Comprehensive Sustainability Radar</b>",
+            'y':0.95, 'x':0.5, 'xanchor': 'center', 'yanchor': 'top'
+        },
+        height=450
     )
     st.plotly_chart(fig, use_container_width=True)
 
