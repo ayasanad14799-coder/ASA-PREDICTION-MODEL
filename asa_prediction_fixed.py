@@ -480,7 +480,7 @@ def show_model_metrics():
 # =============================================================================
 # 11. نظام الفيدباك مع الربط بـ Google Sheets
 # =============================================================================
-ddef log_prediction_to_sheets(inputs, results):
+def log_prediction_to_sheets(inputs, results):
     """تسجيل بيانات الخلطة والنتائج المتوقعة في ورقة Predictions_Log"""
     try:
         conn = st.connection("gsheets", type=GSheetsConnection)
