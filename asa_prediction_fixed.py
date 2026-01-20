@@ -567,15 +567,15 @@ def handle_feedback():
                 st.balloons()
                 
             except Exception as e:
-        # هذا السطر سيظهر لكِ المشكلة الحقيقية بلون أحمر
-        st.error(f"Actual Connection Error: {e}")
-                
-                with st.expander("Preview of your feedback"):
-                    st.json({
-                        "Name": user_name if user_name else "Anonymous",
-                        "Stars": stars if stars else "Not rated",
-                        "Comments": observation if observation else "No comments"
-                    })
+            # تم تعديل المسافات هنا (4 مسافات لليمين)
+            st.error(f"Actual Connection Error: {e}")
+            
+            with st.expander("Preview of your feedback"):
+                st.json({
+                    "Name": user_name if user_name else "Anonymous",
+                    "Stars": stars if stars else "Not rated",
+                    "Comments": observation if observation else "No comments"
+                })
 
 # =============================================================================
 # 12. الوثائق
