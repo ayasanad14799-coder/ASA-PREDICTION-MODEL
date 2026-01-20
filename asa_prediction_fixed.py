@@ -512,9 +512,8 @@ def log_prediction_to_sheets(inputs, results):
         st.sidebar.success("✅ Data logged to Google Sheets")
         
     except Exception as e:
-        # تقصير رسالة الخطأ لتظهر بشكل لائق في الجنب
-        error_msg = str(e)[:50]
-        st.sidebar.warning(f"📝 Logging Note: {error_msg}... (Active after full setup)")
+        # هذا السطر سيظهر لكِ المشكلة الحقيقية بلون أحمر
+        st.error(f"Actual Connection Error: {e}")
 
 def handle_feedback():
     """تسجيل التقييم في ورقة Feedback"""
