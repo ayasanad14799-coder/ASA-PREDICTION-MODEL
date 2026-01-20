@@ -483,7 +483,6 @@ def show_model_metrics():
 def log_prediction_to_sheets(inputs, results):
     """تسجيل بيانات الخلطة والنتائج المتوقعة في ورقة Predictions_Log"""
     try:
-        # استدعاء الاتصال (تأكدي أن الاسم gsheets يطابق الموجود في السكرت)
         conn = st.connection("gsheets", type=GSheetsConnection)
         
         # تجهيز البيانات
@@ -504,19 +503,21 @@ def log_prediction_to_sheets(inputs, results):
             "Predicted_Cost": round(results[13], 2)
         }])
         
-        # قراءة البيانات الحالية (مع تجاهل الخطأ لو الورقة فاضية)
+        # محاولة القراءة والتحديث
         try:
+            # تأكدي أن الاسم في الشيت "Predictions_Log" بدون مسافات زيادة
             existing_data = conn.read(worksheet="Predictions_Log", ttl=0)
             updated_df = pd.concat([existing_data, new_row], ignore_index=True)
-        except:
+        except Exception:
+            # لو الورقة فاضية تماماً، استخدم السطر الجديد كبداية
             updated_df = new_row
             
-        # التحديث (هنا بتحدث المعجزة لو المفاتيح صح)
         conn.update(worksheet="Predictions_Log", data=updated_df)
-        st.sidebar.success("✅ Prediction logged to Sheets!")
+        st.sidebar.success("✅ Prediction saved to Sheets!")
         
     except Exception as e:
-        st.sidebar.error(f"Logging Error: {str(e)[:100]}")
+        # غيرت دي لـ st.error عشان تشوفي الخطأ في وشك لو حصل
+        st.error(f"⚠️ Predictions Log Error: {e}")
 
 def handle_feedback():
     """تسجيل التقييم في ورقة Feedback"""
